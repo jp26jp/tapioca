@@ -1,12 +1,15 @@
-# coding: utf-8
-
 import json
-import xmltodict
-from collections.abc import Mapping
 
 from .tapioca import TapiocaInstantiator
 from .exceptions import (
-    ResponseProcessException, ClientError, ServerError)
+    AccessDenied,
+    BadRequest,
+    InvalidCredentials,
+    NotFoundError,
+    ResponseProcessException,
+    ClientError,
+    ServerError,
+)
 from .serializers import SimpleSerializer
 
 
@@ -46,11 +49,13 @@ class TapiocaAdapter(object):
         return template.format(**params)
 
     def get_request_kwargs(self, api_params, *args, **kwargs):
-        serialized = self.serialize_data(kwargs.get('data'))
+        serialized = self.serialize_data(kwargs.get("data"))
 
-        kwargs.update({
-            'data': self.format_data_to_request(serialized),
-        })
+        kwargs.update(
+            {
+                "data": self.format_data_to_request(serialized),
+            }
+        )
         return kwargs
 
     def get_error_message(self, data, response=None):
@@ -63,6 +68,22 @@ class TapiocaAdapter(object):
         data = self.response_to_native(response)
 
         if 400 <= response.status_code < 500:
+
+            if response.status_code == 400:
+                raise ResponseProcessException(BadRequest, data)
+
+            if response.status_code == 401:
+                raise ResponseProcessException(InvalidCredentials, data)
+
+            if response.status_code == 403:
+                raise ResponseProcessException(AccessDenied, data)
+
+            if response.status_code == 404:
+                raise ResponseProcessException(NotFoundError, data)
+
+            if response.status_code == 500:
+                raise ResponseProcessException(ServerError, data)
+
             raise ResponseProcessException(ClientError, data)
 
         return data
@@ -82,8 +103,7 @@ class TapiocaAdapter(object):
     def get_iterator_list(self, response_data):
         raise NotImplementedError()
 
-    def get_iterator_next_request_kwargs(self, iterator_request_kwargs,
-                                         response_data, response):
+    def get_iterator_next_request_kwargs(self, iterator_request_kwargs, response_data, response):
         raise NotImplementedError()
 
     def is_authentication_expired(self, exception, *args, **kwargs):
@@ -94,23 +114,28 @@ class TapiocaAdapter(object):
 
 
 class FormAdapterMixin(object):
+    def get_request_kwargs(self, api_params, *args, **kwargs):
+        params = super().get_request_kwargs(api_params, *args, **kwargs)
+        if "headers" not in params:
+            params["headers"] = {}
+        params["headers"]["accept"] = "*/*"
+        return params
 
     def format_data_to_request(self, data):
-        return data
+        if not data:
+            return
+        return FormAdapterMixin.encode_multipart_formdata(data)
 
     def response_to_native(self, response):
-        return {'text': response.text}
+        return {"text": response.text}
 
 
 class JSONAdapterMixin(object):
-
     def get_request_kwargs(self, api_params, *args, **kwargs):
-        arguments = super(JSONAdapterMixin, self).get_request_kwargs(
-            api_params, *args, **kwargs)
-
-        if 'headers' not in arguments:
-            arguments['headers'] = {}
-        arguments['headers']['Content-Type'] = 'application/json'
+        arguments = super().get_request_kwargs(api_params, *args, **kwargs)
+        if "headers" not in arguments:
+            arguments["headers"] = {}
+        arguments["headers"]["Content-Type"] = "application/json"
         return arguments
 
     def format_data_to_request(self, data):
@@ -119,53 +144,14 @@ class JSONAdapterMixin(object):
 
     def response_to_native(self, response):
         if response.content.strip():
-            return response.json()
+            try:
+                return response.json()
+            except ValueError:
+                return response.content
 
     def get_error_message(self, data, response=None):
         if not data and response.content.strip():
-            data = json.loads(response.content.decode('utf-8'))
+            data = json.loads(response.content.decode("utf-8"))
 
         if data:
-            return data.get('error', None)
-
-
-
-class XMLAdapterMixin(object):
-
-    def _input_branches_to_xml_bytestring(self, data):
-        if isinstance(data, Mapping):
-            return xmltodict.unparse(
-                data, **self._xmltodict_unparse_kwargs).encode('utf-8')
-        try:
-            return data.encode('utf-8')
-        except Exception as e:
-            raise type(e)('Format not recognized, please enter an XML as string or a dictionary'
-                          'in xmltodict spec: \n%s' % e.message)
-
-    def get_request_kwargs(self, api_params, *args, **kwargs):
-        # stores kwargs prefixed with 'xmltodict_unparse__' for use by xmltodict.unparse
-        self._xmltodict_unparse_kwargs = {k[len('xmltodict_unparse__'):]: kwargs.pop(k)
-                                          for k in kwargs.copy().keys()
-                                          if k.startswith('xmltodict_unparse__')}
-        # stores kwargs prefixed with 'xmltodict_parse__' for use by xmltodict.parse
-        self._xmltodict_parse_kwargs = {k[len('xmltodict_parse__'):]: kwargs.pop(k)
-                                        for k in kwargs.copy().keys()
-                                        if k.startswith('xmltodict_parse__')}
-
-        arguments = super(XMLAdapterMixin, self).get_request_kwargs(
-            api_params, *args, **kwargs)
-
-        if 'headers' not in arguments:
-            arguments['headers'] = {}
-        arguments['headers']['Content-Type'] = 'application/xml'
-        return arguments
-
-    def format_data_to_request(self, data):
-        if data:
-            return self._input_branches_to_xml_bytestring(data)
-
-    def response_to_native(self, response):
-        if response.content.strip():
-            if 'xml' in response.headers['content-type']:
-                return xmltodict.parse(response.content, **self._xmltodict_parse_kwargs)
-            return {'text': response.text}
+            return data.get("error", None)

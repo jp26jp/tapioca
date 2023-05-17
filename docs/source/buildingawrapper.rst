@@ -135,23 +135,3 @@ Once these methods are implemented, the client can be instantiated with ```refre
         ...
 
 
-XMLAdapterMixin Configuration (only if required)
-------------------------------------------------
-
-Additionally, the XMLAdapterMixin accepts configuration keyword arguments to be passed to the xmltodict library during parsing and unparsing by prefixing the xmltodict keyword with ``xmltodict_parse__`` or ``xmltodict_unparse`` respectively. These parameters should be configured so that the end-user has a consistent experience across multiple Tapioca wrappers irrespective of various API requirements from wrapper to wrapper.
-
-Note that the end-user should **not** need to modify these keyword arguments themselves. See xmltodict `docs <http://xmltodict.readthedocs.org/en/latest/>`_ and `source <https://github.com/martinblech/xmltodict>`_ for valid parameters.
-
-Users should be able to construct dictionaries as defined by the xmltodict library, and responses should be returned in the canonical format.
-
-Example XMLAdapterMixin configuration keywords:
-
-.. code-block:: python
-
-    class MyXMLClientAdapter(XMLAdapterMixin, TapiocaAdapter):
-        ...
-        def get_request_kwargs(self, api_params, *args, **kwargs):
-            ...
-            # omits XML declaration when constructing requests from dictionary
-            kwargs['xmltodict_unparse__full_document'] = False
-            ...

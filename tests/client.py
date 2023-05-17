@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from tapioca.adapters import (
-    TapiocaAdapter, JSONAdapterMixin, XMLAdapterMixin,
+    TapiocaAdapter, JSONAdapterMixin,
     generate_wrapper_from_adapter)
 from tapioca.serializers import SimpleSerializer
 
@@ -94,9 +94,3 @@ class FailTokenRefreshClientAdapter(TokenRefreshClientAdapter):
 FailTokenRefreshClient = generate_wrapper_from_adapter(FailTokenRefreshClientAdapter)
 
 
-class XMLClientAdapter(XMLAdapterMixin, TapiocaAdapter):
-    api_root = 'https://api.example.org'
-    resource_mapping = RESOURCE_MAPPING
-
-
-XMLClient = generate_wrapper_from_adapter(XMLClientAdapter)
