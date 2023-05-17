@@ -48,7 +48,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'tapioca-wrapper'
+project = u'tapioca'
 copyright = u'2015, Filipe Ximenes'
 author = u'Filipe Ximenes'
 
