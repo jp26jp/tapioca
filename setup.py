@@ -52,7 +52,7 @@ if sys.argv[-1] == 'publish':
 
 
 setup(
-    name='tapioca-wrapper',
+    name='tapioca',
     version=get_version(package),
     description='Python API client generator',
     long_description=description,
