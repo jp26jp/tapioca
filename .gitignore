@@ -4,7 +4,7 @@
 *.so
 
 # Packages
-*.egg
+#*.egg
 #*.egg-info
 dist
 build
@@ -17,7 +17,7 @@ develop-eggs
 .installed.cfg
 lib
 lib64
-/.eggs
+#/.eggs
 
 # Installer logs
 pip-log.txt
