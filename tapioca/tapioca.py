@@ -6,6 +6,8 @@ import time
 import webbrowser
 from collections import OrderedDict
 
+import requests as requests
+
 from .exceptions import ResponseProcessException
 
 
