@@ -48,3 +48,12 @@ docs/_build
 
 # pyenv
 .python-version
+/.idea/sonarlint/issuestore/index.pb
+/.idea/sonarlint/securityhotspotstore/index.pb
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.vscode/settings.json
+/.idea/tapioca-wrapper.iml
+/.idea/vcs.xml

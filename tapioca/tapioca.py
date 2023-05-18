@@ -57,7 +57,6 @@ class TapiocaClient(object):
         return self._api.__class__(serializer_class=serializer_class)
 
     def _wrap_in_tapioca(self, data, *args, **kwargs):
-        print(f"_wrap_in_tapioca called with data={data}, args={args}, kwargs={kwargs}")
         request_kwargs = kwargs.pop("request_kwargs", self._request_kwargs)
         return TapiocaClient(
             self._instatiate_api(),
@@ -123,7 +122,6 @@ class TapiocaClient(object):
         return components[0] + "".join(x.title() for x in components[1:])
 
     def _get_client_from_name(self, name):
-        print(f"_get_client_from_name called with name: {name}")
         if (
             isinstance(self._data, list)
             and isinstance(name, int)
@@ -144,7 +142,6 @@ class TapiocaClient(object):
         return None
 
     def _get_client_from_name_or_fallback(self, name):
-        print(f"_get_client_from_name_or_fallback called with name: {name}")
         client = self._get_client_from_name(name)
         if client is not None:
             return client
@@ -223,7 +220,6 @@ class TapiocaClientExecutor(TapiocaClient):
         return self._wrap_in_tapioca_executor(getattr(self._data, name))
 
     def __call__(self, *args, **kwargs):
-        print("calling TapiocaClientExecutor")
         return self._wrap_in_tapioca(self._data.__call__(*args, **kwargs))
 
     @property
@@ -248,8 +244,6 @@ class TapiocaClientExecutor(TapiocaClient):
         if "url" not in kwargs:
             kwargs["url"] = self._data
 
-        # print("request url", kwargs["url"])
-
         request_kwargs = self._api.get_request_kwargs(
             self._api_params, request_method, *args, **kwargs
         )
@@ -266,7 +260,6 @@ class TapiocaClientExecutor(TapiocaClient):
         # Calculate delay based on remaining requests and reset time
         if remaining_requests <= threshold and reset_time > 0:
             delay = reset_time / remaining_requests
-            print(f"Sleeping for {delay}")
             time.sleep(delay)
 
         try:
