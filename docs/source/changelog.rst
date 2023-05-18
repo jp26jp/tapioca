@@ -2,7 +2,7 @@
 Changelog
 =========
 
-2.1.0
+2.2.1
 =====
 - Make ``TapiocaClient`` and ``TapiocaClientExecutor`` pickle-able.
 
