@@ -255,7 +255,7 @@ class TapiocaClientExecutor(TapiocaClient):
         reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
 
         # Set a threshold for remaining requests
-        threshold = 10
+        threshold = 100
 
         # Calculate delay based on remaining requests and reset time
         if remaining_requests <= threshold and reset_time > 0:
