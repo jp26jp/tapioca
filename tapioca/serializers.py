@@ -11,24 +11,15 @@ class BaseSerializer(object):
         raise NotImplementedError("Desserialization method not found")
 
     def serialize_dict(self, data):
-        serialized = {}
-
-        for key, value in data.items():
-            serialized[key] = self.serialize(value)
-
-        return serialized
+        return {key: self.serialize(value) for key, value in data.items()}
 
     def serialize_list(self, data):
-        serialized = []
-        for item in data:
-            serialized.append(self.serialize(item))
-
-        return serialized
+        return [self.serialize(item) for item in data]
 
     def serialize(self, data):
         data_type = type(data).__name__
 
-        serialize_method = ('serialize_' + data_type).lower()
+        serialize_method = f'serialize_{data_type}'.lower()
         if hasattr(self, serialize_method):
             return getattr(self, serialize_method)(data)
 

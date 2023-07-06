@@ -51,11 +51,7 @@ class TapiocaAdapter(object):
     def get_request_kwargs(self, api_params, *args, **kwargs):
         serialized = self.serialize_data(kwargs.get("data"))
 
-        kwargs.update(
-            {
-                "data": self.format_data_to_request(serialized),
-            }
-        )
+        kwargs["data"] = self.format_data_to_request(serialized)
         return kwargs
 
     def get_error_message(self, data, response=None):
@@ -89,10 +85,7 @@ class TapiocaAdapter(object):
         return data
 
     def serialize_data(self, data):
-        if self.serializer:
-            return self.serializer.serialize(data)
-
-        return data
+        return self.serializer.serialize(data) if self.serializer else data
 
     def format_data_to_request(self, data):
         raise NotImplementedError()
