@@ -530,7 +530,10 @@ class TapiocaClientExecutor(TapiocaClient):
         :rtype: Any
         """
         executor = self
+        print("heres the first time")
         iterator_list = executor._get_iterator_list()
+        print("iterator list", iterator_list)
+
         page_count = 0
         item_count = 0
 
