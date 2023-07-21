@@ -532,8 +532,16 @@ class TapiocaClientExecutor(TapiocaClient):
         executor = self
         iterator_list = executor._get_iterator_list()
 
+        print("iterator_list:", iterator_list)
+
         page_count = 0
         item_count = 0
+
+        print("page_count:", page_count)
+        print("item_count:", item_count)
+        print("max_pages:", max_pages)
+        print("max_items:", max_items)
+        print("Reached max limits:", self._reached_max_limits(page_count, item_count, max_pages, max_items))
 
         while iterator_list and not self._reached_max_limits(page_count, item_count, max_pages, max_items):
             print("Inside while loop")
