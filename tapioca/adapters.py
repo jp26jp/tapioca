@@ -94,6 +94,7 @@ class TapiocaAdapter(object):
         raise NotImplementedError()
 
     def get_iterator_list(self, response_data):
+        print("response data of iterator list", response_data)
         raise NotImplementedError()
 
     def get_iterator_next_request_kwargs(self, iterator_request_kwargs, response_data, response):
