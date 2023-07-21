@@ -484,7 +484,6 @@ class TapiocaClientExecutor(TapiocaClient):
         :returns: Iterator list.
         :rtype: Any
         """
-        print("do we hit hte iterator list")
         return self._api.get_iterator_list(self._data)
 
     def _get_iterator_next_request_kwargs(self):
