@@ -546,7 +546,9 @@ class TapiocaClientExecutor(TapiocaClient):
 
             page_count += 1
 
+            print("About to call get_iterator_next_request_kwargs")
             next_request_kwargs = executor._get_iterator_next_request_kwargs()
+            print("Finished calling get_iterator_next_request_kwargs")
 
             if not next_request_kwargs:
                 break
