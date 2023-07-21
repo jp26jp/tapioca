@@ -528,6 +528,7 @@ class TapiocaClientExecutor(TapiocaClient):
         :returns: Pages.
         :rtype: Any
         """
+        print("Inside pages method")
         executor = self
         iterator_list = executor._get_iterator_list()
 
@@ -535,6 +536,7 @@ class TapiocaClientExecutor(TapiocaClient):
         item_count = 0
 
         while iterator_list and not self._reached_max_limits(page_count, item_count, max_pages, max_items):
+            print("Inside while loop")
             for item in iterator_list:
                 if self._reached_max_limits(page_count, item_count, max_pages, max_items):
                     break
