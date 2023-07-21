@@ -493,6 +493,7 @@ class TapiocaClientExecutor(TapiocaClient):
         :returns: Next request kwargs.
         :rtype: Any
         """
+        print("do we ever hit this point")
         return self._api.get_iterator_next_request_kwargs(
             self._request_kwargs, self._data, self._response
         )
@@ -532,9 +533,7 @@ class TapiocaClientExecutor(TapiocaClient):
         page_count = 0
         item_count = 0
 
-        while iterator_list:
-            if self._reached_max_limits(page_count, item_count, max_pages, max_items):
-                break
+        while iterator_list and not self._reached_max_limits(page_count, item_count, max_pages, max_items):
             for item in iterator_list:
                 if self._reached_max_limits(page_count, item_count, max_pages, max_items):
                     break
