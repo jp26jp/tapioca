@@ -424,7 +424,7 @@ class TapiocaClientExecutor(TapiocaClient):
 
         # Calculate delay based on remaining requests and reset time
         if remaining_requests <= threshold and reset_time > 0:
-            delay = reset_time / remaining_requests
+            delay = reset_time / max(1, remaining_requests)
             time.sleep(delay)
 
         try:
@@ -493,7 +493,6 @@ class TapiocaClientExecutor(TapiocaClient):
         :returns: Next request kwargs.
         :rtype: Any
         """
-        print("do we ever hit this point")
         return self._api.get_iterator_next_request_kwargs(
             self._request_kwargs, self._data, self._response
         )
@@ -528,7 +527,6 @@ class TapiocaClientExecutor(TapiocaClient):
         :returns: Pages.
         :rtype: Any
         """
-        print("Inside pages method")
         executor = self
         iterator_list = executor._get_iterator_list()
 
@@ -544,7 +542,6 @@ class TapiocaClientExecutor(TapiocaClient):
         print("Reached max limits:", self._reached_max_limits(page_count, item_count, max_pages, max_items))
 
         while iterator_list and not self._reached_max_limits(page_count, item_count, max_pages, max_items):
-            print("Inside while loop")
             for item in iterator_list:
                 if self._reached_max_limits(page_count, item_count, max_pages, max_items):
                     break
@@ -553,9 +550,7 @@ class TapiocaClientExecutor(TapiocaClient):
 
             page_count += 1
 
-            print("About to call get_iterator_next_request_kwargs")
             next_request_kwargs = executor._get_iterator_next_request_kwargs()
-            print("Finished calling get_iterator_next_request_kwargs")
 
             if not next_request_kwargs:
                 break
