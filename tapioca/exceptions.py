@@ -36,6 +36,7 @@ class RateLimit(TapiocaException):
     def __init__(self, message="", client=None):
         super().__init__(message, client=client)
 
+
 class InvalidCredentials(TapiocaException):
     def __init__(self, message="", client=None):
         super().__init__(message, client=client)
@@ -60,4 +61,5 @@ def exception_handler(function):
         except BadRequest:
             print(args[0])
             print("Bad request or invalid data sent", args, kwargs)
+
     return _
