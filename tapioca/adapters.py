@@ -8,7 +8,7 @@ from .exceptions import (
     NotFoundError,
     ResponseProcessException,
     ClientError,
-    ServerError,
+    ServerError, RateLimit,
 )
 from .serializers import SimpleSerializer
 
