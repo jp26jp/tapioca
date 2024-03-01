@@ -74,6 +74,9 @@ class TapiocaAdapter(object):
             if response.status_code == 403:
                 raise ResponseProcessException(AccessDenied, data)
 
+            if response.status_code == 429:
+                raise ResponseProcessException(RateLimit, data)
+
             if response.status_code == 404:
                 raise ResponseProcessException(NotFoundError, data)
 

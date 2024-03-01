@@ -32,6 +32,10 @@ class BadRequest(TapiocaException):
         super().__init__(message, client=client)
 
 
+class RateLimit(TapiocaException):
+    def __init__(self, message="", client=None):
+        super().__init__(message, client=client)
+
 class InvalidCredentials(TapiocaException):
     def __init__(self, message="", client=None):
         super().__init__(message, client=client)
