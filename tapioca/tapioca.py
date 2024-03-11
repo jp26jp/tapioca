@@ -13,6 +13,7 @@ from .exceptions import ResponseProcessException
 
 from typing import Type, Optional, Any
 
+
 class TapiocaInstantiator:
     """
     A callable object that creates a TapiocaClient instance using the provided parameters.
@@ -27,7 +28,12 @@ class TapiocaInstantiator:
         """
         self.adapter_class = adapter_class
 
-    def __call__(self, serializer_class: Optional[Type] = None, session: Optional[Any] = None, **kwargs):
+    def __call__(
+        self,
+        serializer_class: Optional[Type] = None,
+        session: Optional[Any] = None,
+        **kwargs,
+    ):
         """
         Create a TapiocaClient instance using the stored adapter class and the provided parameters.
 
@@ -231,7 +237,9 @@ class TapiocaClient(object):
             api_root = self._api.get_api_root(self._api_params, resource_name=name)
 
             url = api_root.rstrip("/") + "/" + resource["resource"].lstrip("/")
-            return self._wrap_in_tapioca(url, resource=resource)  # Pass the resource parameter here
+            return self._wrap_in_tapioca(
+                url, resource=resource
+            )  # Pass the resource parameter here
 
         return None
 
@@ -260,8 +268,10 @@ class TapiocaClient(object):
         return client if client is not None else None
 
     def __getattr__(self, name):
-        if name in ['_data', '__setstate__']:
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+        if name in ["_data", "__setstate__"]:
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
         ret = self._get_client_from_name_or_fallback(name)
         if ret is None:
             raise AttributeError(name)
@@ -303,6 +313,7 @@ class TapiocaClientExecutor(TapiocaClient):
     """
     Subclass of `TapiocaClient` with additional methods for executing requests and handling responses.
     """
+
     def __init__(self, api, *args, **kwargs):
         """
         Initialize a TapiocaClientExecutor instance.
@@ -320,7 +331,9 @@ class TapiocaClientExecutor(TapiocaClient):
         :type key: str
         :raises Exception: Always raised to prevent this operation.
         """
-        raise Exception("This operation cannot be done on a TapiocaClientExecutor object")
+        raise Exception(
+            "This operation cannot be done on a TapiocaClientExecutor object"
+        )
 
     def __iter__(self):
         """
@@ -413,31 +426,43 @@ class TapiocaClientExecutor(TapiocaClient):
             self._api_params, request_method, *args, **kwargs
         )
 
-        response = self._session.request(request_method, **request_kwargs)
-
-        # Extract rate limit headers
-        remaining_requests = int(response.headers.get("X-RateLimit-Remaining", 1))
-        reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
-
-        # Set a threshold for remaining requests
-        threshold = 100
-
-        # Calculate delay based on remaining requests and reset time
-        if remaining_requests <= threshold and reset_time > 0:
-            delay = reset_time / max(1, remaining_requests)
-            time.sleep(delay)
+        response = None
+        data = locals().get('data')
 
         try:
-            data = self._api.process_response(response)
+            response = self._session.request(request_method, **request_kwargs)
+
+            # Extract rate limit headers
+            remaining_requests = int(response.headers.get("X-RateLimit-Remaining", 1))
+            reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
+
+            # Set a threshold for remaining requests
+            threshold = 100
+
+            # Calculate delay based on remaining requests and reset time
+            if remaining_requests <= threshold and reset_time > 0:
+                delay = reset_time / max(1, remaining_requests)
+                time.sleep(delay)
+
+            if response.ok:
+                data = self._api.process_response(response)
+            else:
+                # If the response is not successful, process the error response
+                data = self._process_error_response(response)
+
         except ResponseProcessException as e:
             client = self._wrap_in_tapioca(
                 e.data, response=response, request_kwargs=request_kwargs
             )
 
             error_message = self._api.get_error_message(data=e.data, response=response)
-            tapioca_exception = e.tapioca_exception(message=error_message, client=client)
+            tapioca_exception = e.tapioca_exception(
+                message=error_message, client=client
+            )
 
-            should_refresh_token = refresh_token is not False and self._refresh_token_default
+            should_refresh_token = (
+                refresh_token is not False and self._refresh_token_default
+            )
             auth_expired = self._api.is_authentication_expired(tapioca_exception)
 
             propagate_exception = True
@@ -446,12 +471,36 @@ class TapiocaClientExecutor(TapiocaClient):
                 self._refresh_data = self._api.refresh_authentication(self._api_params)
                 if self._refresh_data:
                     propagate_exception = False
-                    return self._make_request(request_method, refresh_token=False, *args, **kwargs)
+                    return self._make_request(
+                        request_method, refresh_token=False, *args, **kwargs
+                    )
 
             if propagate_exception:
                 raise tapioca_exception from e
 
-        return self._wrap_in_tapioca(data, response=response, request_kwargs=request_kwargs)
+        return self._wrap_in_tapioca(
+            data, response=response, request_kwargs=request_kwargs
+        )
+
+    def _process_error_response(self, response):
+        """
+        Process the error response from the API.
+
+        :param response: The response object from the API call.
+        :type response: requests.Response
+        :returns: The processed error data.
+        :rtype: dict
+        """
+        try:
+            # Attempt to parse the JSON error response
+            error_data = response.json()
+        except ValueError:
+            # If response is not JSON, use the text content
+            error_data = {"error": response.text}
+
+        # Log the error details
+        print(f"Error response: {error_data}")
+        return error_data
 
     def get(self, *args, **kwargs):
         """
@@ -539,11 +588,18 @@ class TapiocaClientExecutor(TapiocaClient):
         print("item_count:", item_count)
         print("max_pages:", max_pages)
         print("max_items:", max_items)
-        print("Reached max limits:", self._reached_max_limits(page_count, item_count, max_pages, max_items))
+        print(
+            "Reached max limits:",
+            self._reached_max_limits(page_count, item_count, max_pages, max_items),
+        )
 
-        while iterator_list and not self._reached_max_limits(page_count, item_count, max_pages, max_items):
+        while iterator_list and not self._reached_max_limits(
+            page_count, item_count, max_pages, max_items
+        ):
             for item in iterator_list:
-                if self._reached_max_limits(page_count, item_count, max_pages, max_items):
+                if self._reached_max_limits(
+                    page_count, item_count, max_pages, max_items
+                ):
                     break
                 yield self._wrap_in_tapioca(item)
                 item_count += 1
@@ -580,7 +636,9 @@ class TapiocaClientExecutor(TapiocaClient):
         :returns: List of method names.
         :rtype: List[str]
         """
-        methods = [m for m in TapiocaClientExecutor.__dict__.keys() if not m.startswith("_")]
+        methods = [
+            m for m in TapiocaClientExecutor.__dict__.keys() if not m.startswith("_")
+        ]
         methods += [m for m in dir(self._api.serializer) if m.startswith("to_")]
 
         return methods
