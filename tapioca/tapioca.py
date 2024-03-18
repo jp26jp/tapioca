@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import copy
 import json
 import time
+import logging
 import webbrowser
 from collections import OrderedDict
 
@@ -13,6 +14,8 @@ from .exceptions import ResponseProcessException
 
 from typing import Type, Optional, Any
 
+
+logger = logging.getLogger(__name__)
 
 class TapiocaInstantiator:
     """
@@ -426,11 +429,11 @@ class TapiocaClientExecutor(TapiocaClient):
             self._api_params, request_method, *args, **kwargs
         )
 
-        response = None
         data = locals().get('data')
 
+        response = self._session.request(request_method, **request_kwargs)
+
         try:
-            response = self._session.request(request_method, **request_kwargs)
 
             # Extract rate limit headers
             remaining_requests = int(response.headers.get("X-RateLimit-Remaining", 1))
@@ -451,11 +454,13 @@ class TapiocaClientExecutor(TapiocaClient):
                 data = self._process_error_response(response)
 
         except ResponseProcessException as e:
+            logger.info("Hit ResponseProcessException")
             client = self._wrap_in_tapioca(
                 e.data, response=response, request_kwargs=request_kwargs
             )
 
             error_message = self._api.get_error_message(data=e.data, response=response)
+
             tapioca_exception = e.tapioca_exception(
                 message=error_message, client=client
             )
