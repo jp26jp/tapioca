@@ -432,7 +432,6 @@ class TapiocaClientExecutor(TapiocaClient):
         data = locals().get('data')
 
         response = self._session.request(request_method, **request_kwargs)
-
         try:
 
             # Extract rate limit headers
@@ -450,6 +449,7 @@ class TapiocaClientExecutor(TapiocaClient):
             if response.ok:
                 data = self._api.process_response(response)
             else:
+                logger.info("Response could not be processed")
                 # If the response is not successful, process the error response
                 data = self._process_error_response(response)
 
