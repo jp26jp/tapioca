@@ -17,6 +17,7 @@ from typing import Type, Optional, Any
 
 logger = logging.getLogger(__name__)
 
+
 class TapiocaInstantiator:
     """
     A callable object that creates a TapiocaClient instance using the provided parameters.
@@ -429,8 +430,6 @@ class TapiocaClientExecutor(TapiocaClient):
             self._api_params, request_method, *args, **kwargs
         )
 
-        data = locals().get('data')
-
         response = self._session.request(request_method, **request_kwargs)
         try:
 
@@ -446,12 +445,7 @@ class TapiocaClientExecutor(TapiocaClient):
                 delay = reset_time / max(1, remaining_requests)
                 time.sleep(delay)
 
-            if response.ok:
-                data = self._api.process_response(response)
-            else:
-                logger.info("Response could not be processed")
-                # If the response is not successful, process the error response
-                data = self._process_error_response(response)
+            data = self._api.process_response(response)
 
         except ResponseProcessException as e:
             logger.info("Hit ResponseProcessException")
